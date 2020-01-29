@@ -20,6 +20,8 @@ public class rUDP {
         this.dest = InetAddress.getByName(dest);
         // DatagramPacket dp_send, dp_receive;
         this.UDPsocket.setSoTimeout(TIMEOUT);
+        
+        start(packages);
     }
 
     private void start(String[] packages) {
