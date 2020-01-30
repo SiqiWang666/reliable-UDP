@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 public class Sender {
     public static void main(String[] argvs) {
         // first check for any command line arguments
@@ -16,9 +18,7 @@ public class Sender {
                     address = argvs[i + 1];
                 } else if(argvs[i].indexOf("=") != -1 && argvs[i].substring(0, argvs[i].indexOf("=")).equals("--address")) {
                     address = argvs[i].substring(argvs[i].indexOf("=") + 1);
-                } else if(argvs[i].equals("-d")) {
-                    debug = true;
-                } else if(argvs[i].indexOf("=") != -1 && argvs[i].substring(0, argvs[i].indexOf("=")).equals("--debug")) {
+                } else if(argvs[i].equals("-d") || argvs[i].equals("--debug")) {
                     debug = true;
                 } else if(argvs[i].equals("-f")) {
                     file_name = argvs[i + 1];
@@ -29,7 +29,12 @@ public class Sender {
                 }
             }
         }
-        
+
+        // if file name is not specified in arguments then take another input
+        if(file_name == null) {
+            Scanner s = new Scanner(System.in);
+            file_name = s.nextLine();
+        }
     }
 
     private static void usage() {

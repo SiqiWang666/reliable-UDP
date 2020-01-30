@@ -4,7 +4,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 
-public class rUDP {
+public class RUDP {
 
     // set up the global variable
     private Boolean debug = false;
@@ -17,7 +17,7 @@ public class rUDP {
         this.debug = debug;
         this.port = port;
         this.UDPsocket = new DatagramSocket(8000);
-        this.dest = dest == "localhost" ? InetAddress. getLocalHost() : InetAddress.getByName(dest);
+        this.dest = dest == "localhost" ? InetAddress.getLocalHost() : InetAddress.getByName(dest);
         // DatagramPacket dp_send, dp_receive;
         this.UDPsocket.setSoTimeout(TIMEOUT);
 
@@ -60,4 +60,5 @@ public class rUDP {
             return null;
         }
     }
+
 }
