@@ -19,7 +19,7 @@ class Package {
      */
     public Package(String path) throws FileNotFoundException, IOException {
         offset = new Random().nextInt(10);
-        // Read file into a string
+        // Read file into a input stream
         this.file = new FileInputStream(new File(path));
     }
 
@@ -60,6 +60,11 @@ class Package {
         return String.valueOf(crc.getValue());
     }
 
+    /** Splits a packet. 
+     * For packets without a data field, the data element will be the empty string.
+     * @param pack   the input full
+     * @return info  an array of the form (msg_type, seqno, data, checksum)
+     */
     public String[] splitPackage(String pack) {
         String[] info = pack.split("\\|");
         return info;
