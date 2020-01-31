@@ -1,14 +1,17 @@
+package src.main;
+
 import java.util.Scanner;
 
 public class Sender {
     public static void main(String[] argvs) {
         // first check for any command line arguments
         // not sure if this is a good way to implement it
+        int port = 33122;
+        String address = "localhost";
+        boolean debug = false;
+        String file_name = null;
+
         if(argvs.length != 0) {
-            int port = 33122;
-            String address = "localhost";
-            boolean debug = false;
-            String file_name = null;
             for(int i = 0; i < argvs.length; i ++) {
                 if(argvs[i].equals("-p")) {
                     port = Integer.parseInt(argvs[i + 1]);
@@ -35,6 +38,11 @@ public class Sender {
             Scanner s = new Scanner(System.in);
             file_name = s.nextLine();
         }
+
+        Package packs = new Package(file_name);
+        String[] packages = packs.generatePackage(0);
+
+        RUDP RUDP_socket = new RUDP(debug, address, port, packaegs);
     }
 
     private static void usage() {

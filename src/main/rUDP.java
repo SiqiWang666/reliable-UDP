@@ -1,5 +1,8 @@
+package src.main;
+
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.SocketException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -13,7 +16,7 @@ public class RUDP {
     private DatagramSocket UDPsocket;
     private final int TIMEOUT = 500;
 
-    public rUDP(Boolean debug, String dest, int port, String[] packages) {
+    public RUDP(Boolean debug, String dest, int port, String[] packages) throws SocketException, IOException {
         this.debug = debug;
         this.port = port;
         this.UDPsocket = new DatagramSocket(8000);
@@ -41,12 +44,6 @@ public class RUDP {
         }
     }
 
-    // send a package of data
-    private void send(String package) {
-        DatagramPacket dp_send = new DatagramPacket(package.getBytes(), package.length(), this.dest, this.port);
-        UDPsocket.send(dp_send);
-    }
-
     // try to recieve some data but times out if could not get a response in 500
     // if times out then return null
     private String recieve() {
@@ -58,6 +55,19 @@ public class RUDP {
         } catch(InterruptedIOException e) {
             System.out.println(e.toString());
             return null;
+        } catch(IOException e) {
+            System.out.println(e.toString());
+            return null;
+        }
+    }
+
+    // send a package of data
+    private void send(String a) {
+        DatagramPacket dp_send = new DatagramPacket(a.getBytes(), a.length(), this.dest, this.port);
+        try{
+            UDPsocket.send(dp_send);
+        } catch(IOException e) {
+            System.out.println(e.toString());
         }
     }
 
