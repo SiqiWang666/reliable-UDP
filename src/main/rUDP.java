@@ -15,8 +15,9 @@ public class RUDP {
     private int port;
     private DatagramSocket UDPsocket;
     private final int TIMEOUT = 500;
+    private Package packs;
 
-    public RUDP(Boolean debug, String dest, int port, String[] packages) throws SocketException, IOException {
+    public RUDP(Boolean debug, String dest, int port, String file_name) throws SocketException, IOException {
         this.debug = debug;
         this.port = port;
         this.UDPsocket = new DatagramSocket(8000);
@@ -24,23 +25,68 @@ public class RUDP {
         // DatagramPacket dp_send, dp_receive;
         this.UDPsocket.setSoTimeout(TIMEOUT);
 
-        start(packages);
+
+        // create the package class instance
+        this.packs = new Package(file_name);
+
+        start();
     }
 
-    private void start(String[] packages) {
+    // private void start(String[] packages) {
+    //     Boolean ack = false;
+    //     String recieved_message;
+    //     int seq_no;
+    //
+    //     // send the packages in sequence
+    //     for(String i : packages) {
+    //         seq_no = Integer.parseInt(i.split('|')[1]);
+    //         // send and receive for every package
+    //         // resend if did not get acknoledgement
+    //         while(!ack) {
+    //             send(i);
+    //             recived_message = recieve();
+    //             if(recived_message != null) {
+    //                 int ack_no = Integer.parseInt(recived_message.split('|')[1]);
+    //                 if(ack_no == (seq_no + 1))
+    //                     ack = true;
+    //             }
+    //         }
+    //         ack = false;
+    //     }
+    // }
+
+    private void start() throws IOException {
+        Boolean isFinished = false;
         Boolean ack = false;
         String recieved_message;
 
-        // send the packages in sequence
-        for(String i : packages) {
+        // generate the package info
+        String message = packs.generatePackage(packs.get_offset());
+        String[] info = packs.splitPackage(message);
+        int seq_no = Integer.parseInt(info[1]);
+
+        while(!isFinished) {
+
             // send and receive for every package
             // resend if did not get acknoledgement
             while(!ack) {
-                send(i);
+                // System.out.println(message);
+                send(message);
                 recieved_message = recieve();
-                if(recieved_message != null) ack = true;
+                if(recieved_message != null) {
+                    int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
+                    // test if the ack's sequence number match
+                    if(ack_no == (seq_no + 1)) {
+                        ack = true;
+                        if(info[0].equals("end")) isFinished = true;
+                    }
+                }
             }
             ack = false;
+            // generate the package and get the package info for next package
+            message = packs.generatePackage(seq_no + 1);
+            info = packs.splitPackage(message);
+            seq_no = Integer.parseInt(info[1]);
         }
     }
 
@@ -62,8 +108,8 @@ public class RUDP {
     }
 
     // send a package of data
-    private void send(String a) {
-        DatagramPacket dp_send = new DatagramPacket(a.getBytes(), a.length(), this.dest, this.port);
+    private void send(String message) {
+        DatagramPacket dp_send = new DatagramPacket(message.getBytes(), message.length(), this.dest, this.port);
         try{
             UDPsocket.send(dp_send);
         } catch(IOException e) {

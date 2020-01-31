@@ -28,18 +28,23 @@ class Package {
      * @return package  return the package formatting as <messageType>|<sequenceNo>|<data>|<checksum>
      */
     public String generatePackage(int seqNo) throws IOException {
-        String msgType, msg, checkSum;
+        String msgType, checkSum;
+        String msg = "";
         byte[] body = new byte[dataSize];
-        int len = file.read(body);
-        //Empty if start or end message
-        msg = len < 0 || seqNo == offset ? "" : new String(body); 
+        int len = 0;
+
+        if(seqNo != this.offset) {
+            len = file.read(body);
+            //Empty if start or end message
+            msg = len < 0 ? "" : new String(body);
+        }
 
         if(seqNo == this.offset) {
             msgType = messageType[0];
         } else if(len < 0) {
             msgType = messageType[2];
         } else msgType = messageType[1];;
-        
+
         checkSum = generateChecksum(msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|");
         return msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|" + checkSum;
     }
@@ -56,8 +61,12 @@ class Package {
     }
 
     public String[] splitPackage(String pack) {
-        String[] info = pack.split("|");
+        String[] info = pack.split("\\|");
         return info;
     }
-    
+
+    public int get_offset() {
+        return offset;
+    }
+
 }
