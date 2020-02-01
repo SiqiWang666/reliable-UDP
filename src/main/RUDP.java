@@ -47,10 +47,7 @@ public class RUDP {
             if(recieved_message != null) {
                 int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
                 // test if the ack's sequence number match
-                if(ack_no == (seq_no + 1)) {
-                    ack = true;
-                    if(info[0].equals("end")) isFinished = true;
-                }
+                if(ack_no == (seq_no + 1)) ack = true;
             }
         }
 
