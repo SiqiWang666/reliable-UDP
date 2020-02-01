@@ -32,29 +32,6 @@ public class RUDP {
         start();
     }
 
-    // private void start(String[] packages) {
-    //     Boolean ack = false;
-    //     String recieved_message;
-    //     int seq_no;
-    //
-    //     // send the packages in sequence
-    //     for(String i : packages) {
-    //         seq_no = Integer.parseInt(i.split('|')[1]);
-    //         // send and receive for every package
-    //         // resend if did not get acknoledgement
-    //         while(!ack) {
-    //             send(i);
-    //             recived_message = recieve();
-    //             if(recived_message != null) {
-    //                 int ack_no = Integer.parseInt(recived_message.split('|')[1]);
-    //                 if(ack_no == (seq_no + 1))
-    //                     ack = true;
-    //             }
-    //         }
-    //         ack = false;
-    //     }
-    // }
-
     private void start() throws IOException {
         Boolean isFinished = false;
         Boolean ack = false;
@@ -65,29 +42,40 @@ public class RUDP {
         String[] info = packs.splitPackage(message);
         int seq_no = Integer.parseInt(info[1]);
 
-        while(!isFinished) {
-
-            // send and receive for every package
-            // resend if did not get acknoledgement
-            while(!ack) {
-                // System.out.println(message);
-                send(message);
-                recieved_message = recieve();
-                if(recieved_message != null) {
-                    int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
-                    // test if the ack's sequence number match
-                    if(ack_no == (seq_no + 1)) {
-                        ack = true;
-                        if(info[0].equals("end")) isFinished = true;
-                    }
+        while(!ack) {
+            recieved_message = recieve();
+            if(recieved_message != null) {
+                int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
+                // test if the ack's sequence number match
+                if(ack_no == (seq_no + 1)) {
+                    ack = true;
+                    if(info[0].equals("end")) isFinished = true;
                 }
             }
-            ack = false;
-            // generate the package and get the package info for next package
-            message = packs.generatePackage(seq_no + 1);
-            info = packs.splitPackage(message);
-            seq_no = Integer.parseInt(info[1]);
         }
+
+        // while(!isFinished) {
+        //
+        //     // send and receive for every package
+        //     // resend if did not get acknoledgement
+        //
+        //     while(!ack) {
+        //         recieved_message = recieve();
+        //         if(recieved_message != null) {
+        //             int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
+        //             // test if the ack's sequence number match
+        //             if(ack_no == (seq_no + 1)) {
+        //                 ack = true;
+        //                 if(info[0].equals("end")) isFinished = true;
+        //             }
+        //         }
+        //     }
+        //     ack = false;
+        //     // generate the package and get the package info for next package
+        //     message = packs.generatePackage(seq_no + 1);
+        //     info = packs.splitPackage(message);
+        //     seq_no = Integer.parseInt(info[1]);
+        // }
     }
 
     // try to recieve some data but times out if could not get a response in 500
