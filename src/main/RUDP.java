@@ -6,6 +6,11 @@ import java.net.SocketException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.util.LinkedList;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Semaphor;
+
 
 public class RUDP {
 
@@ -17,6 +22,13 @@ public class RUDP {
     private final int TIMEOUT = 500;
     private Package packs;
 
+    private int base;
+    private int nextSeqNum;
+    private LinkedList<String> packetsList;
+    private Timer timer;
+    private Semaphore s;
+    private boolean isTransferComplete = false;
+
     public RUDP(Boolean debug, String dest, int port, String file_name) throws SocketException, IOException {
         this.debug = debug;
         this.port = port;
@@ -25,15 +37,25 @@ public class RUDP {
         // DatagramPacket dp_send, dp_receive;
         this.UDPsocket.setSoTimeout(TIMEOUT);
 
-
         // create the package class instance
         this.packs = new Package(file_name);
+        this.base = this.packs.get_offset();
+        this.nextSeqNum = this.base;
+        this.packetsList = new LinkedList<String>();
+        this.s = new Semaphore(1);
 
         start();
     }
 
+    public void setTimer(boolean isNewTimer){
+        if (timer != null) timer.cancel();
+            if (isNewTimer){
+                timer = new Timer();
+                timer.schedule(new Timeout(), timeoutVal);
+            }
+    }
+
     private void start() throws IOException {
-        Boolean isFinished = false;
         Boolean ack = false;
         String recieved_message;
 
@@ -99,6 +121,18 @@ public class RUDP {
             UDPsocket.send(dp_send);
         } catch(IOException e) {
             System.out.println(e.toString());
+        }
+    }
+
+    public class Timeout extends TimerTask{
+        public void run(){
+            try{
+                s.acquire();
+                nextSeqNum = base;
+                s.release();
+            } catch(InterruptedException e){
+              e.printStackTrace();
+            }
         }
     }
 
