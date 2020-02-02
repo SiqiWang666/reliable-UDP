@@ -148,12 +148,12 @@ public class RUDP {
               try {
                   // while there are still data to be transfered or to be recieved
                   while(!isTransferComplete) {
-                      // try {
-                      //     Thread.sleep(300);
-                      // } catch(InterruptedException interrupt_e) {
-                      //     interrupt_e.printStackTrace();
-                      // }
-                      System.out.println(nextSeqNum + " " + base + " " + totalSequenceNo + " " + nextSeqNum);
+                      try {
+                          Thread.sleep(5);
+                      } catch(InterruptedException interrupt_e) {
+                          interrupt_e.printStackTrace();
+                      }
+                      // System.out.println(nextSeqNum + " " + base + " " + totalSequenceNo + " " + nextSeqNum);
                       if(totalSequenceNo == base && nextSeqNum == base) {
                           generateOutPackages();
                       }
@@ -181,11 +181,6 @@ public class RUDP {
                               System.out.println(interrupt_e.toString());
                           }
                       }
-                  }
-                  try {
-                      Thread.sleep(100);
-                  } catch(InterruptedException interrupt_e) {
-                      interrupt_e.printStackTrace();
                   }
               } catch (IOException e) {
                   e.printStackTrace();
@@ -219,8 +214,7 @@ public class RUDP {
                     int ackNum = Integer.parseInt(Package.splitPackage(message)[1]);
 
                     // end ackNum
-                    if(isEndPackage && ackNum + 1 == totalSequenceNo) {
-                        System.out.println(ackNum + " " + base);
+                    if(isEndPackage && ackNum == totalSequenceNo) {
                         isTransferComplete = true;
                     }
                     else if(ackNum < base) { // duplicate ackNum
