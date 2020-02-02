@@ -9,7 +9,7 @@ import java.net.InetAddress;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Semaphor;
+import java.util.concurrent.Semaphore;
 
 
 public class RUDP {
@@ -35,7 +35,7 @@ public class RUDP {
         this.UDPsocket = new DatagramSocket(8000);
         this.dest = dest == "localhost" ? InetAddress.getLocalHost() : InetAddress.getByName(dest);
         // DatagramPacket dp_send, dp_receive;
-        this.UDPsocket.setSoTimeout(TIMEOUT);
+        //this.UDPsocket.setSoTimeout(TIMEOUT);
 
         // create the package class instance
         this.packs = new Package(file_name);
@@ -51,7 +51,7 @@ public class RUDP {
         if (timer != null) timer.cancel();
             if (isNewTimer){
                 timer = new Timer();
-                timer.schedule(new Timeout(), timeoutVal);
+                timer.schedule(new Timeout(), TIMEOUT);
             }
     }
 
@@ -97,6 +97,48 @@ public class RUDP {
         // }
     }
 
+    public class ReceiveThread extends Thread {
+        // private DatagramSocket receiveSocket;
+        // // Receive thread constructor
+        // public ReceiveThread(DatagramSocket socket) {
+        //     this.receiveSocket = socket;
+        // }
+
+        @Override
+        public void run() {
+            byte[] buffer = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, 1024);
+            try {
+                while(!isTransferComplete) {
+                    UDPsocket.receive(receivePacket);
+                    // check if the package is valid
+                    if(!Util.validChecksum(buffer.toString())) continue;
+                    int ackNum = Integer.parseInt(Package.splitPackage(buffer.toString())[1]);
+                    
+                    // end ackNum
+                    if(ackNum < 0) isTransferComplete = true;
+                    else if(ackNum < base) { // duplicate ackNum
+                        s.acquire();
+                        setTimer(false);
+                        nextSeqNum = base;
+                        s.release();
+                    } else {
+                        // normal ackNum
+                        base = ackNum;
+                        s.acquire();
+                        if(base == nextSeqNum) setTimer(false);
+                        else setTimer(true);
+                        s.release();
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println(e.toString());
+            } finally {
+                UDPsocket.close();
+            }
+            
+        }
+    }
     // try to recieve some data but times out if could not get a response in 500
     // if times out then return null
     private String recieve() {
