@@ -20,7 +20,7 @@ class Util {
      */
     public static boolean validChecksum(String message) {
         String[] decoded = Package.splitPackage(message);
-        String reportedChecksum = generateChecksum(new String(decoded[0] + "|" + decoded[1] + "|" + decoded[2] + "|"));
-        return reportedChecksum.equals(decoded[3]);
+        String reportedChecksum = generateChecksum(new String(decoded[0] + "|" + decoded[1] + "|"));
+        return reportedChecksum.equals(decoded[2]);
     }
 }
