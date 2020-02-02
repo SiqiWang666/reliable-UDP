@@ -45,19 +45,8 @@ class Package {
             msgType = messageType[2];
         } else msgType = messageType[1];;
 
-        checkSum = generateChecksum(msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|");
+        checkSum = Util.generateChecksum(msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|");
         return msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|" + checkSum;
-    }
-
-    /**
-     * Message MUST end with a trailing '|' character.
-     * @param message
-     * @return checksum
-     */
-    public String generateChecksum(String message) {
-        CRC32 crc = new CRC32();
-        crc.update(message.getBytes());
-        return String.valueOf(crc.getValue());
     }
 
     /** Splits a packet. 
@@ -65,7 +54,7 @@ class Package {
      * @param pack   the input full
      * @return info  an array of the form (msg_type, seqno, data, checksum)
      */
-    public String[] splitPackage(String pack) {
+    public static String[] splitPackage(String pack) {
         String[] info = pack.split("\\|");
         return info;
     }
