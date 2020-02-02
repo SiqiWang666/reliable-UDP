@@ -148,11 +148,11 @@ public class RUDP {
               try {
                   // while there are still data to be transfered or to be recieved
                   while(!isTransferComplete) {
-                      try {
-                          Thread.sleep(5);
-                      } catch(InterruptedException interrupt_e) {
-                          interrupt_e.printStackTrace();
-                      }
+                      // try {
+                      //     Thread.sleep(5);
+                      // } catch(InterruptedException interrupt_e) {
+                      //     interrupt_e.printStackTrace();
+                      // }
                       // System.out.println(nextSeqNum + " " + base + " " + totalSequenceNo + " " + nextSeqNum);
                       if(totalSequenceNo == base && nextSeqNum == base) {
                           generateOutPackages();
@@ -179,6 +179,12 @@ public class RUDP {
                           } catch(InterruptedException interrupt_e) {
                               interrupt_e.printStackTrace();
                               System.out.println(interrupt_e.toString());
+                          }
+                      } else {
+                          try {
+                              Thread.sleep(5);
+                          } catch(InterruptedException interrupt_e) {
+                              interrupt_e.printStackTrace();
                           }
                       }
                   }
