@@ -154,7 +154,7 @@ public class RUDP {
                       //     interrupt_e.printStackTrace();
                       // }
                       System.out.println(nextSeqNum + " " + base + " " + totalSequenceNo + " " + nextSeqNum);
-                      if(totalSequenceNo == base) {
+                      if(totalSequenceNo == base && nextSeqNum == base) {
                           generateOutPackages();
                       }
 
