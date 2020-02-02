@@ -22,6 +22,7 @@ public class RUDP {
     private final int TIMEOUT = 500;
     private Package packs;
 
+    private int offset;
     private int base;
     private int nextSeqNum;
     private LinkedList<String> packetsList;
@@ -35,11 +36,12 @@ public class RUDP {
         this.UDPsocket = new DatagramSocket(8000);
         this.dest = dest == "localhost" ? InetAddress.getLocalHost() : InetAddress.getByName(dest);
         // DatagramPacket dp_send, dp_receive;
-        this.UDPsocket.setSoTimeout(TIMEOUT);
+        // this.UDPsocket.setSoTimeout(TIMEOUT);
 
         // create the package class instance
         this.packs = new Package(file_name);
         this.base = this.packs.get_offset();
+        this.offset = this.packs.get_offset();
         this.nextSeqNum = this.base;
         this.packetsList = new LinkedList<String>();
         this.s = new Semaphore(1);
@@ -49,10 +51,10 @@ public class RUDP {
 
     public void setTimer(boolean isNewTimer){
         if (timer != null) timer.cancel();
-            if (isNewTimer){
-                timer = new Timer();
-                timer.schedule(new Timeout(), timeoutVal);
-            }
+        if (isNewTimer){
+            timer = new Timer();
+            timer.schedule(new Timeout(), TIMEOUT);
+        }
     }
 
     private void start() throws IOException {
