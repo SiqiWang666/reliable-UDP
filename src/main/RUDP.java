@@ -22,6 +22,7 @@ public class RUDP {
     private final int TIMEOUT = 500;
     private Package packs;
 
+    private int offset;
     private int base;
     private int nextSeqNum;
     private LinkedList<String> packetsList;
@@ -40,6 +41,7 @@ public class RUDP {
         // create the package class instance
         this.packs = new Package(file_name);
         this.base = this.packs.get_offset();
+        this.offset = this.packs.get_offset();
         this.nextSeqNum = this.base;
         this.packetsList = new LinkedList<String>();
         this.s = new Semaphore(1);
