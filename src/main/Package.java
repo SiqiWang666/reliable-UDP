@@ -36,7 +36,11 @@ class Package {
         if(seqNo != this.offset) {
             len = file.read(body);
             //Empty if start or end message
-            msg = len < 0 ? "" : new String(body);
+            if(len < dataSize && len != -1) {
+                byte[] body_last = new byte[len];
+                for(int i = 0; i < len; i ++) body_last[i] = body[i];
+                msg = new String(body_last);
+            } else msg = len < 0 ? "" : new String(body);
         }
 
         if(seqNo == this.offset) {
@@ -49,7 +53,7 @@ class Package {
         return msgType + "|" + String.valueOf(seqNo) + "|" + msg + "|" + checkSum;
     }
 
-    /** Splits a packet. 
+    /** Splits a packet.
      * For packets without a data field, the data element will be the empty string.
      * @param pack   the input full
      * @return info  an array of the form (msg_type, seqno, data, checksum)
