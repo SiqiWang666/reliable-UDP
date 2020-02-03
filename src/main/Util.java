@@ -11,7 +11,7 @@ class Util {
     public static String generateChecksum(String message) {
         CRC32 crc = new CRC32();
         crc.update(message.getBytes());
-        return String.valueOf(crc.getValue());
+        return Long.toHexString(crc.getValue());
     }
     /**
      * Message MUST end with a trailing '|' character.
