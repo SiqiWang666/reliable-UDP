@@ -18,7 +18,7 @@ Execute the `TestHarness` by using command: `python2 TestHarness -s JavaSender.p
 
 - How to design a multithread `Sender`?
 
-**Solution: **We use three thread, `outThread`,  `receiveThread` and `time`, to send packages, receive ACKs and countdown time . Make sure the synchronized visiting of shared variable.
+**Solution**:We use three thread, `outThread`,  `receiveThread` and `time`, to send packages, receive ACKs and countdown time . Make sure the synchronized visiting of shared variable.
 
 - `Sender` side's `outThread` get stucked when ack|No is smaller than current base of window
 
@@ -26,7 +26,7 @@ Execute the `TestHarness` by using command: `python2 TestHarness -s JavaSender.p
 
 - How and what time to release uncessary space of storing packages within the window size?
 
-**Solution: ** Once we got ack|No behind current window, then we update base of window.
+**Solution**: Once we got ack|No behind current window, then we update base of window.
 
 - The output file in receriver side have extra whitespaces in the last line.
 
