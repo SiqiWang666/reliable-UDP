@@ -128,7 +128,7 @@ public class RUDP {
               try{
                   for(int i = 0; i < window_size; i ++) {
                       next_message = packs.generatePackage(totalSequenceNo);
-
+                      System.out.println(next_message);
                       totalSequenceNo += 1;
                       packetsList.add(next_message);
                       if(packs.splitPackage(next_message)[0].equals("end")) {
@@ -189,7 +189,7 @@ public class RUDP {
                       }
                   }
                   try {
-                      Thread.sleep(50);
+                      Thread.sleep(100);
                   } catch(InterruptedException interrupt_e) {
                       interrupt_e.printStackTrace();
                   }
