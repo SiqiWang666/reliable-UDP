@@ -128,7 +128,7 @@ public class RUDP {
               try{
                   for(int i = 0; i < window_size; i ++) {
                       next_message = packs.generatePackage(totalSequenceNo);
-                      System.out.println(next_message);
+                      // System.out.println(next_message);
                       totalSequenceNo += 1;
                       packetsList.add(next_message);
                       if(packs.splitPackage(next_message)[0].equals("end")) {
@@ -166,7 +166,7 @@ public class RUDP {
                               // set timer if this is the first package in the list
                               if(base == nextSeqNum) setTimer(true);
                               // get the next package
-                              if(nextSeqNum - base < 0) break;
+                              // if(nextSeqNum - base < 0) break;
                               message = packetsList.get(nextSeqNum - base);
                               // send the package
                               if(message.split("\\|")[0].equals("end")) isEndPackage = true;

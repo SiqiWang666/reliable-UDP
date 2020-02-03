@@ -29,7 +29,7 @@ public class test{
           try
           {
 
-              if(File1.available() != File2.available() && 1 == 0)
+              if(File1.available() != File2.available() && 1 ==0)
               {
                   System.out.println(File1.available());
                   System.out.println(File2.available());
@@ -43,7 +43,6 @@ public class test{
 
                   while( (a = File1.read()) != -1 && (b = File2.read()) != -1)
                   {
-                      a ++;
                       System.out.print((char)a);
                       // if(File1.read() != File2.read())
                       // {

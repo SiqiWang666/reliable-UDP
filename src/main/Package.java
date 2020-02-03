@@ -33,19 +33,25 @@ class Package {
         byte[] body = new byte[dataSize];
         int len = 0;
 
-        if(seqNo != this.offset) {
-            len = file.read(body);
-            //Empty if start or end message
-            if(len < dataSize && len != -1) {
-                byte[] body_last = new byte[len];
-                for(int i = 0; i < len; i ++) body_last[i] = body[i];
-                msg = new String(body_last);
-            } else msg = len < 0 ? "" : new String(body);
-        }
+        // if(seqNo != this.offset) {
+        //     len = file.read(body);
+        //     //Empty if start or end message
+        //     if(len < dataSize && len != -1) {
+        //         byte[] body_last = new byte[len];
+        //         for(int i = 0; i < len; i ++) body_last[i] = body[i];
+        //         msg = new String(body_last);
+        //     } else msg = len < 0 ? "" : new String(body);
+        // }
+        len = file.read(body);
+        if(len < dataSize && len != -1) {
+            byte[] body_last = new byte[len];
+            for(int i = 0; i < len; i ++) body_last[i] = body[i];
+            msg = new String(body_last);
+        } else msg = new String(body);
 
         if(seqNo == this.offset) {
             msgType = messageType[0];
-        } else if(len < 0) {
+        } else if(len < dataSize) {
             msgType = messageType[2];
         } else msgType = messageType[1];;
 
