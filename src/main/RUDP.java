@@ -188,6 +188,11 @@ public class RUDP {
                           }
                       }
                   }
+                  try {
+                      Thread.sleep(50);
+                  } catch(InterruptedException interrupt_e) {
+                      interrupt_e.printStackTrace();
+                  }
               } catch (IOException e) {
                   e.printStackTrace();
                   System.out.println(e.toString());
