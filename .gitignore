@@ -2,3 +2,12 @@
 *.sw*
 *.class
 127.0.0.1.*
+
+# Ignore mac os file
+.DS_Store
+
+# Ignore vs code settings
+.vscode
+
+# Ignore local tests
+src/tests/
