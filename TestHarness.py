@@ -105,9 +105,10 @@ class Forwarder(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.settimeout(0.01) # make this a very short timeout, por que no?
         self.sock.bind(('', self.port))
-
+        self.sender_ack_port = self.port + 2
         self.receiver_port = self.port + 1
         self.sender_addr = None
+        self.sender_ack_addr = None
         self.receiver_addr = None
 
     def _tick(self):
@@ -159,7 +160,7 @@ class Forwarder(object):
 
         if self.test_state == "READY":
             if address == self.receiver_addr:
-                p = Packet(message, self.sender_addr, self.start_seqno_base)
+                p = Packet(message, self.sender_ack_addr, self.start_seqno_base)
             elif address == self.sender_addr:
                 p = Packet(message, self.receiver_addr, self.start_seqno_base)
             else:
@@ -171,6 +172,7 @@ class Forwarder(object):
     def start(self, input_file):
         self.test_state = "NEW"
         self.sender_addr = None
+        self.sender_ack_addr = ('127.0.0.1', self.sender_ack_port)
         self.receiver_addr = ('127.0.0.1', self.receiver_port)
         self.recv_outfile = "127.0.0.1.%d" % self.port
 
@@ -184,7 +186,7 @@ class Forwarder(object):
         time.sleep(0.2) # make sure the receiver is started first
         sender = subprocess.Popen(["python", self.sender_path,
                                    "-f", input_file,
-                                   "-p", str(self.port)])
+                                   "-p", str(self.port), "-k", str(self.sender_ack_port)])
         try:
             start_time = time.time()
             while sender.poll() is None:
@@ -218,6 +220,7 @@ class Forwarder(object):
                 pass
             finally:
                 self.sock.settimeout(timeout)
+                self.sock.close()
 
         if not os.path.exists(self.recv_outfile):
           raise RuntimeError("No data received by receiver!")
