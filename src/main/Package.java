@@ -11,7 +11,7 @@ import java.io.File;
 
 class Package {
     private int offset; // offset of sequence number
-    private int dataSize = 1000;
+    private int dataSize = 1400;
     private String[] messageType = new String[]{"start", "data", "end", "ack"};
     public ArrayList<String> packages = new ArrayList<>();
 
@@ -75,10 +75,17 @@ class Package {
         return packages.get(index);
     }
 
+    /** Get the offset of the packages list
+     * 
+     * @return the offset of the list
+     */
     public int get_offset() {
         return offset;
     }
-
+    /**
+     * Get the length of the packages list
+     * @return
+     */
     public int getLength() {
         return packages.size();
     }
