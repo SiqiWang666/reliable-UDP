@@ -20,27 +20,27 @@ def tests_to_run(forwarder):
     ## Basic tests, no drops. You better pass this!
     BasicTest.BasicTest(forwarder, "README")
     
-    ## Tests to help with debugging
-    # No drops, but print all packets sent
+    # ## Tests to help with debugging
+    # # No drops, but print all packets sent
     PrintNoDropTest.PrintNoDropTest(forwarder, "README")
-    # Drop second packet, exit after 50 packets and use larger file
+    # # Drop second packet, exit after 50 packets and use larger file
     PrintDropTest.PrintDropTest(forwarder, "README-4x", 50)
 
     ## More complex tests of full functionality
-    # RandomDropTest.RandomDropTest(forwarder, "README")
-    # RandomCorruptTest.RandomCorruptTest(forwarder, "README")
-    # DuplicatePacketTest.DuplicatePacketTest(forwarder, "README")
-    # DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README")
-    # # # DelayPacketTest.DelayPacketTest(forwarder, "README")
-    # ReorderedPacketTest.ReorderedPacketTest(forwarder, "README")
+    RandomDropTest.RandomDropTest(forwarder, "README")
+    RandomCorruptTest.RandomCorruptTest(forwarder, "README")
+    DuplicatePacketTest.DuplicatePacketTest(forwarder, "README")
+    DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README")
+    DelayPacketTest.DelayPacketTest(forwarder, "README")
+    ReorderedPacketTest.ReorderedPacketTest(forwarder, "README")
 
-    # # BasicTest.BasicTest(forwarder, "README-4x")
-    # RandomDropTest.RandomDropTest(forwarder, "README-4x")
-    # RandomCorruptTest.RandomCorruptTest(forwarder, "README-4x")
-    # DuplicatePacketTest.DuplicatePacketTest(forwarder, "README-4x")
-    # DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README-4x")
-    # # # DelayPacketTest.DelayPacketTest(forwarder, "README-4x")
-    # ReorderedPacketTest.ReorderedPacketTest(forwarder, "README-4x")
+    BasicTest.BasicTest(forwarder, "README-4x")
+    RandomDropTest.RandomDropTest(forwarder, "README-4x")
+    RandomCorruptTest.RandomCorruptTest(forwarder, "README-4x")
+    DuplicatePacketTest.DuplicatePacketTest(forwarder, "README-4x")
+    DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README-4x")
+    DelayPacketTest.DelayPacketTest(forwarder, "README-4x")
+    ReorderedPacketTest.ReorderedPacketTest(forwarder, "README-4x")
 
 """
 Testing is divided into two pieces: this forwarder and a set of test cases in
@@ -220,7 +220,9 @@ class Forwarder(object):
                 pass
             finally:
                 self.sock.settimeout(timeout)
-                self.sock.close()
+                # raise Bad File Descriptor error
+                # reason: close the socket but call accept later
+                #self.sock.close()
 
         if not os.path.exists(self.recv_outfile):
           raise RuntimeError("No data received by receiver!")
