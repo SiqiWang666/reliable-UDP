@@ -71,7 +71,8 @@ class Receiver():
                 except:
                     raise ValueError
                 if debug:
-                    print "%s %d %s %s" % (msg_type, seqno, data, checksum)
+                    print "Receiving package: %s | %d" % (msg_type, seqno)
+                    # print "%s %d %s %s" % (msg_type, seqno, data, checksum)
                 if Checksum.validate_checksum(message):
                     self.MESSAGE_HANDLER.get(msg_type,self._handle_other)(seqno, data, address)
                 elif self.debug:
@@ -96,9 +97,12 @@ class Receiver():
     #   (IP address, port number)
     def send(self, message, address):
         self.s.sendto(message, address)
+        # self.s.sendto(message, self.ack_address)
 
     # this sends an ack message to address with specified seqno
     def _send_ack(self, seqno, address):
+        if debug:
+            print "Sending ack package: ack | %d" % seqno
         m = "ack|%d|" % seqno
         checksum = Checksum.generate_checksum(m)
         message = "%s%s" % (m, checksum)
@@ -110,8 +114,8 @@ class Receiver():
         conn = self.connections[address]
         ackno, res_data = conn.ack(seqno,data)
         for l in res_data:
-            if self.debug:
-                print data
+            # if self.debug:
+            #     print data
             conn.record(l)
         self._send_ack(ackno, address)
 
@@ -121,8 +125,8 @@ class Receiver():
             conn = self.connections[address]
             ackno,res_data = conn.ack(seqno,data)
             for l in res_data:
-                if self.debug:
-                    print l
+                # if self.debug:
+                #     print l
                 conn.record(l)
             self._send_ack(ackno, address)
 
@@ -132,8 +136,8 @@ class Receiver():
             conn = self.connections[address]
             ackno, res_data = conn.ack(seqno,data)
             for l in res_data:
-                if self.debug:
-                    print l
+                # if self.debug:
+                #     print l
                 conn.record(l)
             self._send_ack(ackno, address)
 
