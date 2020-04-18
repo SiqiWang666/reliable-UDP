@@ -12,8 +12,6 @@ public class Sender {
         String file_name = null;
         int ack = 4567;
 
-        // System.out.println("Start to send file");
-
         if(argvs.length != 0) {
             //boolean state = false;
             for(int i = 0; i < argvs.length; i++) {
@@ -52,8 +50,8 @@ public class Sender {
 
         // TODO stdin
         try {
-            RUDPCOPY rudp = new RUDPCOPY(debug, address, port, file_name, ack);
-            System.out.println("Start to tranfer file...");
+            RUDP rudp = new RUDP(debug, address, port, file_name, ack);
+            // System.out.println("Start to tranfer file...");
             rudp.start();
         } catch(IOException e) {
             System.out.println(e.toString());
@@ -61,6 +59,6 @@ public class Sender {
     }
 
     private static void usage() {
-        System.out.println("BEARS-TP Sender\n-f FILE | --file=FILE The file to transfer; if empty reads from STDIN\n-p PORT | --port=PORT The destination port, defaults to 33122\n-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost\n-d | --debug Print debug messages\n-h | --help Print this usage message");
+        System.out.println("BEARS-TP Sender\n-f FILE | --file=FILE The file to transfer; if empty reads from STDIN\n-p PORT | --port=PORT The destination port, defaults to 33122\n-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost\n-d | --debug Print debug messages\n-h | --help Print this usage message\n-k PORT | --ack=PORT The receiver's port for listening ack packages, defaults to 4567");
     }
 }
