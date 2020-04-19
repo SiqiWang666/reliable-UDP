@@ -36,26 +36,6 @@ public class RUDP {
         // chucks up input file
         packs = new Package(file_name);
     }
-
-    public void testEndPackage() {
-        String endPck = packs.generatePackageById(packs.getLength() - 1);
-        String[] info = Util.splitPackage(endPck);
-        for(String msg: info) {
-            System.out.println(msg);
-        }
-    }
-
-    // DEPRECATED!!
-    // public void setTimer(boolean isNewTimer) {
-    //     TimerTask task = new TimerTask() {
-    //         @Override
-    //         public void run() {
-    //             curr = windowOffset;
-    //         }
-    //     };
-    //     timer.schedule(task, 0, TIMEOUT);
-    // }
-
     
     public void start() throws SocketException, IOException {
         System.out.println("Bidirectional transfer...");
