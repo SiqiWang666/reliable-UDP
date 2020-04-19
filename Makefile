@@ -22,5 +22,12 @@ build: clean classes
 test: build
 	python TestHarness.py -s JavaSender.py -r Receiver.py
 
+# Define default arguments
+file = README
+port = 33122
+
+run: build
+	java src.main.Sender -f $(file) -p $(port)
+
 debug: build
-	java src.main.Sender -f README -d
+	java src.main.Sender -f $(file) -d
