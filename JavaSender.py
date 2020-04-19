@@ -15,12 +15,13 @@ if __name__ == "__main__":
         print "Runs a sender written in another language."
         print "-f FILE | --file=FILE The file to transfer; if empty reads from STDIN"
         print "-p PORT | --port=PORT The destination port, defaults to 33122"
+        print "-k PORT | --ack=PORT The sender's ack port, defaults to 4567"
         print "-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost"
         print "-h | --help Print this usage message"
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                               "f:p:a:", ["file=", "port=", "address="])
+                               "f:p:a:k:", ["file=", "port=", "address=", "ack="])
     except:
         usage()
         exit()
@@ -28,6 +29,7 @@ if __name__ == "__main__":
     port = 33122
     dest = "localhost"
     filename = None
+    ack = 4567
 
     for o,a in opts:
         if o in ("-f", "--file="):
@@ -36,10 +38,9 @@ if __name__ == "__main__":
             port = int(a)
         elif o in ("-a", "--address="):
             dest = a
-
-    # Change this to your java program's main class
+        elif o in ("-k", "--ack="):
+            ack = int(a)
+    
     javaclass = "src.main.Sender"
-    # You may need to add other arguments such as setting the class path
-    # You should do add these before the javaclass variable
-    subprocess.call(["java", javaclass, "-f", filename, "-p", str(port), "-a", dest])
+    subprocess.call(["java", javaclass, "-f", filename, "-p", str(port), "-a", dest, "-k", str(ack)])
     

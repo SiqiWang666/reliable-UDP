@@ -20,27 +20,27 @@ def tests_to_run(forwarder):
     ## Basic tests, no drops. You better pass this!
     BasicTest.BasicTest(forwarder, "README")
     
-    ## Tests to help with debugging
-    # No drops, but print all packets sent
+    # ## Tests to help with debugging
+    # # No drops, but print all packets sent
     PrintNoDropTest.PrintNoDropTest(forwarder, "README")
-    # Drop second packet, exit after 50 packets and use larger file
+    # # Drop second packet, exit after 50 packets and use larger file
     PrintDropTest.PrintDropTest(forwarder, "README-4x", 50)
 
     ## More complex tests of full functionality
-    # RandomDropTest.RandomDropTest(forwarder, "README")
-    # RandomCorruptTest.RandomCorruptTest(forwarder, "README")
-    # DuplicatePacketTest.DuplicatePacketTest(forwarder, "README")
-    # DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README")
-    # # # DelayPacketTest.DelayPacketTest(forwarder, "README")
-    # ReorderedPacketTest.ReorderedPacketTest(forwarder, "README")
+    RandomDropTest.RandomDropTest(forwarder, "README")
+    RandomCorruptTest.RandomCorruptTest(forwarder, "README")
+    DuplicatePacketTest.DuplicatePacketTest(forwarder, "README")
+    DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README")
+    DelayPacketTest.DelayPacketTest(forwarder, "README")
+    ReorderedPacketTest.ReorderedPacketTest(forwarder, "README")
 
-    # # BasicTest.BasicTest(forwarder, "README-4x")
-    # RandomDropTest.RandomDropTest(forwarder, "README-4x")
-    # RandomCorruptTest.RandomCorruptTest(forwarder, "README-4x")
-    # DuplicatePacketTest.DuplicatePacketTest(forwarder, "README-4x")
-    # DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README-4x")
-    # # # DelayPacketTest.DelayPacketTest(forwarder, "README-4x")
-    # ReorderedPacketTest.ReorderedPacketTest(forwarder, "README-4x")
+    BasicTest.BasicTest(forwarder, "README-4x")
+    RandomDropTest.RandomDropTest(forwarder, "README-4x")
+    RandomCorruptTest.RandomCorruptTest(forwarder, "README-4x")
+    DuplicatePacketTest.DuplicatePacketTest(forwarder, "README-4x")
+    DropAndDuplicatePacketTest.DropAndDuplicatePacketTest(forwarder, "README-4x")
+    DelayPacketTest.DelayPacketTest(forwarder, "README-4x")
+    ReorderedPacketTest.ReorderedPacketTest(forwarder, "README-4x")
 
 """
 Testing is divided into two pieces: this forwarder and a set of test cases in
@@ -105,9 +105,10 @@ class Forwarder(object):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.settimeout(0.01) # make this a very short timeout, por que no?
         self.sock.bind(('', self.port))
-
+        self.sender_ack_port = self.port + 2
         self.receiver_port = self.port + 1
         self.sender_addr = None
+        self.sender_ack_addr = None
         self.receiver_addr = None
 
     def _tick(self):
@@ -159,7 +160,7 @@ class Forwarder(object):
 
         if self.test_state == "READY":
             if address == self.receiver_addr:
-                p = Packet(message, self.sender_addr, self.start_seqno_base)
+                p = Packet(message, self.sender_ack_addr, self.start_seqno_base)
             elif address == self.sender_addr:
                 p = Packet(message, self.receiver_addr, self.start_seqno_base)
             else:
@@ -171,6 +172,7 @@ class Forwarder(object):
     def start(self, input_file):
         self.test_state = "NEW"
         self.sender_addr = None
+        self.sender_ack_addr = ('127.0.0.1', self.sender_ack_port)
         self.receiver_addr = ('127.0.0.1', self.receiver_port)
         self.recv_outfile = "127.0.0.1.%d" % self.port
 
@@ -184,7 +186,7 @@ class Forwarder(object):
         time.sleep(0.2) # make sure the receiver is started first
         sender = subprocess.Popen(["python", self.sender_path,
                                    "-f", input_file,
-                                   "-p", str(self.port)])
+                                   "-p", str(self.port), "-k", str(self.sender_ack_port)])
         try:
             start_time = time.time()
             while sender.poll() is None:
@@ -218,6 +220,9 @@ class Forwarder(object):
                 pass
             finally:
                 self.sock.settimeout(timeout)
+                # raise Bad File Descriptor error
+                # reason: close the socket but call accept later
+                #self.sock.close()
 
         if not os.path.exists(self.recv_outfile):
           raise RuntimeError("No data received by receiver!")

@@ -1,292 +1,145 @@
 package src.main;
 
 import java.io.IOException;
-import java.io.InterruptedIOException;
+
 import java.net.SocketException;
+import java.time.Duration;
+import java.time.Instant;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Semaphore;
+import java.net.InetSocketAddress;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RUDP {
+    private static boolean debug = false;
+    private static long TIMEOUT = 500;
+    private InetSocketAddress dest;
+    private static DatagramSocket clientSocket;
+    private static DatagramSocket serverSocket;
+    private static Package packs;
 
-    // set up the global variable
-    private Boolean debug = false;
-    private InetAddress dest;
-    private int port;
-    private DatagramSocket UDPsocket;
-    private final int TIMEOUT = 500;
-    private Package packs;
+    private static AtomicInteger curr = new AtomicInteger();
+    private static int windowSize = 5;
+    private static AtomicInteger windowOffset = new AtomicInteger();
+    private static AtomicBoolean isComplete = new AtomicBoolean(false);
+    private static Instant timer = null;
+    private static AtomicBoolean droppedPkg = new AtomicBoolean(false);
 
-    private int offset;
-    private int base;
-    private int nextSeqNum;
-    private LinkedList<String> packetsList;
-    private Timer timer;
-    private Semaphore s;
-    private boolean isTransferComplete = false;
-
-    private Boolean isEndPackage = false;
-    private int totalSequenceNo;
-
-    public RUDP(Boolean debug, String dest, int port, String file_name) throws SocketException, IOException {
-        this.debug = debug;
-        this.port = port;
-        this.UDPsocket = new DatagramSocket(8000);
-        this.dest = dest == "localhost" ? InetAddress.getLocalHost() : InetAddress.getByName(dest);
-        // DatagramPacket dp_send, dp_receive;
-        //this.UDPsocket.setSoTimeout(TIMEOUT);
-
-        // create the package class instance
-        this.packs = new Package(file_name);
-        this.base = this.packs.get_offset();
-        this.offset = this.packs.get_offset();
-        this.totalSequenceNo = this.offset + 1;
-        this.nextSeqNum = this.base;
-        this.s = new Semaphore(1);
-
-        start();
+    public RUDP(boolean d, String dest, int port, String file_name, int ack) throws SocketException, IOException {
+        debug = d;
+        this.dest = new InetSocketAddress(InetAddress.getByName(dest), port);
+        clientSocket = new DatagramSocket();
+        serverSocket = new DatagramSocket(ack);
+        // chucks up input file
+        packs = new Package(file_name);
+    }
+    
+    public void start() throws SocketException, IOException {
+        System.out.println("Bidirectional transfer...");
+        
+        // TODO initial setup of the variable RTT
+        timer = Instant.now();
+        bidirectTransfer();
     }
 
-    public void setTimer(boolean isNewTimer){
-        if (timer != null) timer.cancel();
-            if (isNewTimer){
-                timer = new Timer();
-                timer.schedule(new Timeout(), TIMEOUT);
-            }
-    }
-
-    private void start() throws IOException {
-        Boolean ack = false;
-        String recieved_message;
-
-        // generate the package info
-        String message = packs.generatePackage(packs.get_offset());
-        String[] info = packs.splitPackage(message);
-        int seq_no = Integer.parseInt(info[1]);
-
-        while(!ack) {
-            send(message);
-            recieved_message = recieve();
-            if(recieved_message != null) {
-                int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
-                // test if the ack's sequence number match
-                if(ack_no == (seq_no + 1)) ack = true;
-            }
+    /**
+     * Main functionality of bi-directional transmission. Spawning two threads from the main thread.
+     */
+    public void bidirectTransfer() {
+        if (debug) {
+            System.out.println("Then lenght of file is: " + packs.getLength());
         }
-        this.base += 1;
-        this.nextSeqNum += 1;
-
-        OutThread out = new OutThread(5);
-        new Thread(out).start();
-        ReceiveThread receive = new ReceiveThread();
-        receive.start();
-
-        // while(!isFinished) {
-        //
-        //     // send and receive for every package
-        //     // resend if did not get acknoledgement
-        //
-        //     while(!ack) {
-        //         recieved_message = recieve();
-        //         if(recieved_message != null) {
-        //             int ack_no = Integer.parseInt(recieved_message.split("\\|")[1]);
-        //             // test if the ack's sequence number match
-        //             if(ack_no == (seq_no + 1)) {
-        //                 ack = true;
-        //                 if(info[0].equals("end")) isFinished = true;
-        //             }
-        //         }
-        //     }
-        //     ack = false;
-        //     // generate the package and get the package info for next package
-        //     message = packs.generatePackage(seq_no + 1);
-        //     info = packs.splitPackage(message);
-        //     seq_no = Integer.parseInt(info[1]);
-        // }
-    }
-
-    public class OutThread implements Runnable {
-          private int window_size;
-          private DatagramPacket dp_send;
-          /**
-            * constructor of inner class, this class handles the sending of the datas
-            * @param window_size is the size of the window designed by the user
-            */
-          public OutThread(int window_size) {
-              this.window_size = window_size;
-              packetsList = new LinkedList<String>();
-          }
-          //this function might be added into the outer class
-          public void generateOutPackages() {
-              packetsList.clear();
-              String next_message;
-              try{
-                  for(int i = 0; i < window_size; i ++) {
-                      next_message = packs.generatePackage(totalSequenceNo);
-                      // System.out.println(next_message);
-                      totalSequenceNo += 1;
-                      packetsList.add(next_message);
-                      if(packs.splitPackage(next_message)[0].equals("end")) {
-                          break;
-                      }
-                  }
-              } catch(IOException e) {
-                  e.printStackTrace();
-                  System.out.println(e.toString());
-              }
-          }
-
-          public void run() {
-
-              String message;
-
-              try {
-                  // while there are still data to be transfered or to be recieved
-                  while(!isTransferComplete) {
-                      // try {
-                      //     Thread.sleep(5);
-                      // } catch(InterruptedException interrupt_e) {
-                      //     interrupt_e.printStackTrace();
-                      // }
-                      // System.out.println(nextSeqNum + " " + base + " " + totalSequenceNo + " " + nextSeqNum);
-                      if(totalSequenceNo == base && nextSeqNum == base) {
-                          generateOutPackages();
-                      }
-
-                      // send the packages in the packetList array
-                      if(nextSeqNum < base + window_size) {
-                          // gain control since we are start sending
-                          try {
-                              s.acquire();
-                              // set timer if this is the first package in the list
-                              if(base == nextSeqNum) setTimer(true);
-                              // get the next package
-                              // if(nextSeqNum - base < 0) break;
-                              message = packetsList.get(nextSeqNum - base);
-                              // send the package
-                              if(message.split("\\|")[0].equals("end")) isEndPackage = true;
-                              dp_send = new DatagramPacket(message.getBytes(), message.length(), dest, port);
-                              UDPsocket.send(dp_send);
-                              // increment the counter
-                              if(!isEndPackage) nextSeqNum ++;
-                              // leave cs
-                              s.release();
-                          } catch(InterruptedException interrupt_e) {
-                              interrupt_e.printStackTrace();
-                              System.out.println(interrupt_e.toString());
-                          }
-                      } else {
-                          try {
-                              Thread.sleep(5);
-                          } catch(InterruptedException interrupt_e) {
-                              interrupt_e.printStackTrace();
-                          }
-                      }
-                  }
-                  try {
-                      Thread.sleep(100);
-                  } catch(InterruptedException interrupt_e) {
-                      interrupt_e.printStackTrace();
-                  }
-              } catch (IOException e) {
-                  e.printStackTrace();
-                  System.out.println(e.toString());
-              } finally {
-                  setTimer(false);
-              }
-          }
-    }
-
-
-    public class ReceiveThread extends Thread {
-        // private DatagramSocket receiveSocket;
-        // // Receive thread constructor
-        // public ReceiveThread(DatagramSocket socket) {
-        //     this.receiveSocket = socket;
-        // }
-
-        @Override
-        public void run() {
-            byte[] buffer = new byte[1024];
-            DatagramPacket receivePacket = new DatagramPacket(buffer, 1024);
-            String message;
-            try {
-                while(!isTransferComplete) {
-                    UDPsocket.receive(receivePacket);
-
-                    // check if the package is valid
-                    message = new String(receivePacket.getData(), 0, receivePacket.getLength());
-                    if(!Util.validChecksum(message)) continue;
-                    int ackNum = Integer.parseInt(Package.splitPackage(message)[1]);
-
-                    // end ackNum
-                    if(isEndPackage && ackNum == totalSequenceNo) {
-                        isTransferComplete = true;
+        Thread sender = new Thread(new Runnable(){
+        
+            @Override
+            public void run() {
+                try{
+                    while(!isComplete.get()) {
+                        if(droppedPkg.get() || Duration.between(timer, Instant.now()).toMillis() >= TIMEOUT) {
+                            // Resend dropped pkg
+                            String msg = packs.generatePackageById(windowOffset.get());
+                            if(debug) System.out.println("Sending potential dropped package sequence: " + Util.splitPackage(msg)[1]);
+                            byte[] buffer = msg.getBytes();
+                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, dest);
+                            clientSocket.send(packet);
+                            timer = Instant.now();
+                            droppedPkg.set(false);
+                        }
+                        if(curr.get() < Math.min(windowOffset.get() + windowSize, packs.getLength())) {
+                            if(curr.get() == windowOffset.get()) timer = Instant.now();
+                            String msg = packs.generatePackageById(curr.get());
+                            if(debug) System.out.println("Sending package sequence: " + Util.splitPackage(msg)[1]);
+                            byte[] buffer = msg.getBytes();
+                            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, dest);
+                            clientSocket.send(packet);
+                            curr.getAndIncrement();
+                        }
                     }
-                    else if(ackNum < base) { // duplicate ackNum
-                        s.acquire();
-                        setTimer(false);
-                        nextSeqNum = base;
-                        s.release();
-                    } else {
-                        // normal ackNum
-                        s.acquire();
-                        base = ackNum;
-                        if(base == nextSeqNum) setTimer(false);
-                        else setTimer(true);
-                        s.release();
-                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    clientSocket.close();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.out.println(e.toString());
-            } finally {
-                // UDPsocket.close();
             }
+        });
 
-        }
-    }
-    // try to recieve some data but times out if could not get a response in 500
-    // if times out then return null
-    private String recieve() {
-        byte[] buffer = new byte[1024];
-        DatagramPacket dp_receive = new DatagramPacket(buffer, 1024);
-        try {
-            UDPsocket.receive(dp_receive);
-            return new String(dp_receive.getData(), 0, dp_receive.getLength());
-        } catch(InterruptedIOException e) {
-            System.out.println(e.toString());
-            return null;
-        } catch(IOException e) {
-            System.out.println(e.toString());
-            return null;
-        }
-    }
 
-    // send a package of data
-    private void send(String message) {
-        DatagramPacket dp_send = new DatagramPacket(message.getBytes(), message.length(), this.dest, this.port);
-        try{
-            UDPsocket.send(dp_send);
-        } catch(IOException e) {
-            System.out.println(e.toString());
-        }
-    }
+        Thread receiver = new Thread(new Runnable(){
+        
+            @Override
+            public void run() {
+                byte[] buffer = new byte[1024];
+                DatagramPacket receivePacket = new DatagramPacket(buffer, 1024);
+                
+                try {
+                    while(!isComplete.get()) {
+                        serverSocket.receive(receivePacket);
+                        String message = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                        if (debug) System.out.println("Receiving package: " + message);
+                        if(!Util.validChecksum(message)) {
+                            if(debug) System.out.println("Checksum failed...");
+                            continue;
+                        }
+                        int ackNum = Integer.parseInt(Util.splitPackage(message)[1]);
+                        if(debug) System.out.println("Receiving ack sequence number: " + ackNum);
+                        // Duplicate ack
+                        if(ackNum < windowOffset.get()) continue;
+                        // Ignore not 'ACK' type message
+                        if(!Util.splitPackage(message)[0].equals("ack")) continue;
 
-    public class Timeout extends TimerTask{
-        public void run(){
-            try{
-                s.acquire();
-                nextSeqNum = base;
-                s.release();
-            } catch(InterruptedException e){
-              e.printStackTrace();
+                        // TODO buffer received packages
+                        // Receive ack of the end package from receiver side
+                        if(ackNum > packs.getLength() - 1) {
+                            isComplete.set(true);
+                            break;
+                        }
+                        if(ackNum >= curr.get()) {
+                            windowOffset.set(ackNum);
+                            curr.set(ackNum);
+                        } else {
+                            windowOffset.set(ackNum);
+                            droppedPkg.set(true);
+                        }
+                        
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    serverSocket.close();
+                }
             }
+        });
+
+        sender.start();
+        receiver.start();
+
+        if(!sender.isAlive() && !receiver.isAlive()) {
+            clientSocket.close();
+            serverSocket.close();
+            System.out.println("File has been transfered...");
         }
     }
 
