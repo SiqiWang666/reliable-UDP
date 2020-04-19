@@ -25,9 +25,10 @@ test: build
 # Define default arguments
 file = README
 port = 33122
+address = localhost
 
 run: build
-	java src.main.Sender -f $(file) -p $(port)
+	java src.main.Sender -f $(file) -p $(port) -a $(address)
 
 debug: build
 	java src.main.Sender -f $(file) -d
