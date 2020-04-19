@@ -77,9 +77,8 @@ public class RUDP {
                             clientSocket.send(packet);
                             curr.getAndIncrement();
                         }
-                        Thread.sleep(15);
                     }
-                } catch (IOException | InterruptedException e) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     clientSocket.close();
