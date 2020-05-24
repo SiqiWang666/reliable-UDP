@@ -6,13 +6,10 @@ services:
 # before_install:
 
 # Test stage
-# script:
-branches:
-    only:
-        - master
+script:
+    - echo pwd
 
-
-after_success:
+after_script:
     - docker build --rm=true -t shari666/rudp .
     # Log in to the docker CLI
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
