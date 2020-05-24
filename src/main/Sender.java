@@ -59,6 +59,6 @@ public class Sender {
     }
 
     private static void usage() {
-        System.out.println("BEARS-TP Sender\n-f FILE | --file=FILE The file to transfer; if empty reads from STDIN\n-p PORT | --port=PORT The destination port, defaults to 33122\n-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost\n-d | --debug Print debug messages\n-h | --help Print this usage message\n-k PORT | --ack=PORT The receiver's port for listening ack packages, defaults to 4567");
+        System.out.println("Usage of Sender\n-f FILE | --file=FILE The file to transfer; (cannot be empty)\n-p PORT | --port=PORT The destination port, defaults to 33122\n-a ADDRESS | --address=ADDRESS The receiver address or hostname, defaults to localhost\n-d | --debug Print debug messages\n-h | --help Print this usage message\n-k PORT | --ack=PORT Port for listening ack packages, defaults to 4567");
     }
 }
