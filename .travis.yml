@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+# Build test stage image, then run test suites
+# before_install:
+
+# Test stage
+# script:
+branches:
+    only:
+        - master
+
+
+after_success:
+    - docker build --rm=true -t shari666/rudp .
+    # Log in to the docker CLI
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Push image to the docker hub
+    - docker push shari666/rudp
