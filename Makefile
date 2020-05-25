@@ -26,9 +26,10 @@ test: build
 file = README
 port = 33122
 address = localhost
+ack = 4567
 
 run: build
-	java src.main.Sender -f $(file) -p $(port) -a $(address)
+	java src.main.Sender -f $(file) -p $(port) -a $(address) -k $(ack)
 
 debug: build
 	java src.main.Sender -f $(file) -d
