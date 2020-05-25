@@ -24,7 +24,7 @@ def tests_to_run(forwarder):
     # # No drops, but print all packets sent
     PrintNoDropTest.PrintNoDropTest(forwarder, "README")
     # # Drop second packet, exit after 50 packets and use larger file
-    PrintDropTest.PrintDropTest(forwarder, "README-4x", 50)
+    # PrintDropTest.PrintDropTest(forwarder, "README-4x", 50)
 
     ## More complex tests of full functionality
     RandomDropTest.RandomDropTest(forwarder, "README")
