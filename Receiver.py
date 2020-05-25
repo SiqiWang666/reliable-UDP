@@ -43,12 +43,13 @@ class Connection():
         self.outfile.close()
 
 class Receiver():
-    def __init__(self,listenport=33122,debug=False,timeout=10):
+    def __init__(self,listenport=33122,debug=False,timeout=10, ack_port = 4567):
         self.debug = debug
         self.timeout = timeout
         self.last_cleanup = time.time()
         self.port = listenport
         self.host = ''
+        self.ack_address = (self.host, ack_port)
         self.s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.s.settimeout(timeout)
@@ -96,8 +97,8 @@ class Receiver():
     # sends a message to the specified address. Addresses are in the format:
     #   (IP address, port number)
     def send(self, message, address):
-        self.s.sendto(message, address)
-        # self.s.sendto(message, self.ack_address)
+        # self.s.sendto(message, address)
+        self.s.sendto(message, self.ack_address)
 
     # this sends an ack message to address with specified seqno
     def _send_ack(self, seqno, address):
@@ -175,11 +176,12 @@ if __name__ == "__main__":
         print "-p PORT | --port=PORT The listen port, defaults to 33122"
         print "-t TIMEOUT | --timeout=TIMEOUT Receiver timeout in seconds"
         print "-d | --debug Print debug messages"
+        print "-k | --ack The sender's ack port, defaults to 4567"
         print "-h | --help Print this usage message"
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],
-                               "p:dt:", ["port=", "debug=", "timeout="])
+                               "p:dtk:", ["port=", "debug=", "timeout=", "ack="])
     except:
         usage()
         exit()
@@ -187,6 +189,7 @@ if __name__ == "__main__":
     port = 33122
     debug = False
     timeout = 10
+    ack_port = 4567
 
     for o,a in opts:
         if o in ("-p", "--port="):
@@ -195,8 +198,10 @@ if __name__ == "__main__":
             timeout = int(a)
         elif o in ("-d", "--debug="):
             debug = True
+        elif o in ("-k", "--ack="):
+            ack_port = int(a)           
         else:
             print usage()
             exit()
-    r = Receiver(port, debug, timeout)
+    r = Receiver(port, debug, timeout, ack_port)
     r.start()

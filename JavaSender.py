@@ -42,5 +42,6 @@ if __name__ == "__main__":
             ack = int(a)
     
     javaclass = "src.main.Sender"
-    subprocess.call(["java", javaclass, "-f", filename, "-p", str(port), "-a", dest, "-k", str(ack)])
+    status_code = subprocess.call(["java", javaclass, "-f", filename, "-p", str(port), "-a", dest, "-k", str(ack)])
+    # print status_code
     

@@ -135,6 +135,7 @@ class Forwarder(object):
             self.current_test = t
             self.start(input_file)
             time.sleep(0.2)
+        self.sock.close()
         print "FINAL: passed %d failed %d tests" % (self.passed, self.failed)
 
     def handle_receive(self, message, address):
@@ -182,7 +183,7 @@ class Forwarder(object):
         print "Starting %s " % self.current_test
 
         receiver = subprocess.Popen(["python", self.receiver_path,
-                                     "-p", str(self.receiver_port)])
+                                     "-p", str(self.receiver_port), "-k", str(self.port)])
         time.sleep(0.2) # make sure the receiver is started first
         sender = subprocess.Popen(["python", self.sender_path,
                                    "-f", input_file,
